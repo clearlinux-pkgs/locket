@@ -4,21 +4,65 @@
 #
 Name     : locket
 Version  : 0.2.0
-Release  : 8
+Release  : 9
 URL      : https://files.pythonhosted.org/packages/d0/22/3c0f97614e0be8386542facb3a7dcfc2584f7b83608c02333bced641281c/locket-0.2.0.tar.gz
 Source0  : https://files.pythonhosted.org/packages/d0/22/3c0f97614e0be8386542facb3a7dcfc2584f7b83608c02333bced641281c/locket-0.2.0.tar.gz
 Summary  : File-based locks for Python for Linux and Windows
 Group    : Development/Tools
-License  : BSD-2-Clause-FreeBSD
-Requires: locket-python3
-Requires: locket-license
-Requires: locket-python
+License  : BSD-2-Clause
+Requires: locket-license = %{version}-%{release}
+Requires: locket-python = %{version}-%{release}
+Requires: locket-python3 = %{version}-%{release}
 BuildRequires : buildreq-distutils3
 
 %description
+locket.py
 =========
+
+Locket implements a lock that can be used by multiple processes provided they use the same path.
+
+.. code-block:: python
+
+    import locket
+
+    # Wait for lock
+    with locket.lock_file("path/to/lock/file"):
+        perform_action()
+
+    # Raise error if lock cannot be acquired immediately
+    with locket.lock_file("path/to/lock/file", timeout=0):
+        perform_action()
         
-        Locket implements a lock that can be used by multiple processes provided they use the same path.
+    # Raise error if lock cannot be acquired after thirty seconds
+    with locket.lock_file("path/to/lock/file", timeout=30):
+        perform_action()
+        
+    # Without context managers:
+    lock = locket.lock_file("path/to/lock/file")
+    try:
+        lock.acquire()
+        perform_action()
+    finally:
+        lock.release()
+
+Locks largely behave as (non-reentrant) `Lock` instances from the `threading`
+module in the standard library. Specifically, their behaviour is:
+
+* Locks are uniquely identified by the file being locked,
+  both in the same process and across different processes.
+
+* Locks are either in a locked or unlocked state.
+
+* When the lock is unlocked, calling `acquire()` returns immediately and changes
+  the lock state to locked.
+
+* When the lock is locked, calling `acquire()` will block until the lock state
+  changes to unlocked, or until the timeout expires.
+
+* If a process holds a lock, any thread in that process can call `release()` to
+  change the state to unlocked.
+
+* Behaviour of locks after `fork` is undefined.
 
 %package license
 Summary: license components for the locket package.
@@ -31,7 +75,7 @@ license components for the locket package.
 %package python
 Summary: python components for the locket package.
 Group: Default
-Requires: locket-python3
+Requires: locket-python3 = %{version}-%{release}
 
 %description python
 python components for the locket package.
@@ -41,6 +85,7 @@ python components for the locket package.
 Summary: python3 components for the locket package.
 Group: Default
 Requires: python3-core
+Provides: pypi(locket)
 
 %description python3
 python3 components for the locket package.
@@ -48,19 +93,28 @@ python3 components for the locket package.
 
 %prep
 %setup -q -n locket-0.2.0
+cd %{_builddir}/locket-0.2.0
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
-export LANG=C
-export SOURCE_DATE_EPOCH=1537215470
+export LANG=C.UTF-8
+export SOURCE_DATE_EPOCH=1583171945
+# -Werror is for werrorists
+export GCC_IGNORE_WERROR=1
+export CFLAGS="$CFLAGS -fno-lto "
+export FCFLAGS="$CFLAGS -fno-lto "
+export FFLAGS="$CFLAGS -fno-lto "
+export CXXFLAGS="$CXXFLAGS -fno-lto "
+export MAKEFLAGS=%{?_smp_mflags}
 python3 setup.py build
 
 %install
+export MAKEFLAGS=%{?_smp_mflags}
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share/doc/locket
-cp LICENSE %{buildroot}/usr/share/doc/locket/LICENSE
+mkdir -p %{buildroot}/usr/share/package-licenses/locket
+cp %{_builddir}/locket-0.2.0/LICENSE %{buildroot}/usr/share/package-licenses/locket/0807415dbe135f77472bb52ce30089e124de4a60
 python3 -tt setup.py build  install --root=%{buildroot}
 echo ----[ mark ]----
 cat %{buildroot}/usr/lib/python3*/site-packages/*/requires.txt || :
@@ -70,8 +124,8 @@ echo ----[ mark ]----
 %defattr(-,root,root,-)
 
 %files license
-%defattr(-,root,root,-)
-/usr/share/doc/locket/LICENSE
+%defattr(0644,root,root,0755)
+/usr/share/package-licenses/locket/0807415dbe135f77472bb52ce30089e124de4a60
 
 %files python
 %defattr(-,root,root,-)
