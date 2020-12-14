@@ -4,7 +4,7 @@
 #
 Name     : locket
 Version  : 0.2.0
-Release  : 12
+Release  : 13
 URL      : https://files.pythonhosted.org/packages/d0/22/3c0f97614e0be8386542facb3a7dcfc2584f7b83608c02333bced641281c/locket-0.2.0.tar.gz
 Source0  : https://files.pythonhosted.org/packages/d0/22/3c0f97614e0be8386542facb3a7dcfc2584f7b83608c02333bced641281c/locket-0.2.0.tar.gz
 Summary  : File-based locks for Python for Linux and Windows
