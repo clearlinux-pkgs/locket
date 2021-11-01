@@ -4,12 +4,13 @@
 #
 Name     : locket
 Version  : 0.2.1
-Release  : 24
+Release  : 25
 URL      : https://files.pythonhosted.org/packages/0c/09/c2b9f6ba4fe2aa4e7ca7bb2c2938adcf9731dd22f4ad570ff1188417a080/locket-0.2.1.tar.gz
 Source0  : https://files.pythonhosted.org/packages/0c/09/c2b9f6ba4fe2aa4e7ca7bb2c2938adcf9731dd22f4ad570ff1188417a080/locket-0.2.1.tar.gz
 Summary  : File-based locks for Python for Linux and Windows
 Group    : Development/Tools
 License  : BSD-2-Clause
+Requires: locket-license = %{version}-%{release}
 Requires: locket-python = %{version}-%{release}
 Requires: locket-python3 = %{version}-%{release}
 BuildRequires : buildreq-distutils3
@@ -18,6 +19,14 @@ BuildRequires : buildreq-distutils3
 =========
         
         Locket implements a lock that can be used by multiple processes provided they use the same path.
+
+%package license
+Summary: license components for the locket package.
+Group: Default
+
+%description license
+license components for the locket package.
+
 
 %package python
 Summary: python components for the locket package.
@@ -47,7 +56,7 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1611155852
+export SOURCE_DATE_EPOCH=1635751401
 export GCC_IGNORE_WERROR=1
 export CFLAGS="$CFLAGS -fno-lto "
 export FCFLAGS="$FFLAGS -fno-lto "
@@ -59,6 +68,8 @@ python3 setup.py build
 %install
 export MAKEFLAGS=%{?_smp_mflags}
 rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/share/package-licenses/locket
+cp %{_builddir}/locket-0.2.1/LICENSE %{buildroot}/usr/share/package-licenses/locket/ee8192d8344dd7db99e21d3f7b2303f4d3ccc143
 python3 -tt setup.py build  install --root=%{buildroot}
 echo ----[ mark ]----
 cat %{buildroot}/usr/lib/python3*/site-packages/*/requires.txt || :
@@ -66,6 +77,10 @@ echo ----[ mark ]----
 
 %files
 %defattr(-,root,root,-)
+
+%files license
+%defattr(0644,root,root,0755)
+/usr/share/package-licenses/locket/ee8192d8344dd7db99e21d3f7b2303f4d3ccc143
 
 %files python
 %defattr(-,root,root,-)
